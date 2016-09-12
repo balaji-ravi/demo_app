@@ -1,0 +1,321 @@
+Install RVM (Ruby Version Manager)
+
+$ sudo apt-get install curl
+
+$ curl -sSL https://get.rvm.io | bash
+
+$ echo '[[ -s "$HOME/.rvm/scripts/rvm" ]] && . "$HOME/.rvm/scripts/rvm" # Load RVM function' >> ~/.bashrc
+Note: use ~/.bash_profile for login shells e.g. remote machines
+
+$ source ~/.bashrc
+
+$ type rvm | head -1
+
+Install Ruby 2.1.6
+
+$ rvm requirements
+This command will print the instructions for installing packages required for Ruby 2.1.6 under "Additional dependencies" section. Follow it and install.
+
+$ rvm install ruby-2.1.6-railsexpress -n railsexpress
+Note: Re-run the above step if it fails
+
+$ rvm alias create default ruby-2.1.6-railsexpress
+
+$ rvm gemset create mentor
+
+$ rvm use ruby-2.1.6-railsexpress@mentor --default
+
+$ rvm install rubygems current
+(Use 'rvm rubygems current' to find the latest version)
+
+$ gem install bundler -v 1.9.4
+Install latest bundler to take advantage of faster resolver and parallel installation
+
+$ bundle config --global jobs 7
+parallelize bundler jobs globally ( < #cores)
+
+Install Rails 3.2.21
+
+$ gem install rails -v '3.2.21'
+This will install the specific version of rails
+
+Setting up new rails project
+
+Add the following gem lines inside Gemfile (note: Not in shell)
+
+gem 'mysql2',  '0.3.14'
+gem 'execjs'
+gem 'therubyracer'
+
+Then run the below command
+
+$ bundle install
+This will install all the required gems including the ones added above
+
+Ruby GC Tuning
+
+Add the following to ~/.bashrc
+
+export RUBY_GC_HEAP_INIT_SLOTS=1800000
+export RUBY_GC_HEAP_FREE_SLOTS=100000
+export RUBY_GC_HEAP_GROWTH_MAX_SLOTS=144000
+export RUBY_GC_HEAP_GROWTH_FACTOR=1.1
+export RUBY_GC_MALLOC_LIMIT=60000000
+export RUBY_GC_OLDMALLOC_LIMIT=60000000
+
+Run the following to load the settings:
+$ source ~/.bashrc
+
+Install MongoDB
+
+$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+$ echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
+$ sudo apt-get update
+$ sudo apt-get install mongodb-org
+
+Install Sphinx (Open Source Search Server)
+
+$ sudo apt-get install g++
+
+(Sphinx Download Link) 
+$ wget http://chronus-chef.s3.amazonaws.com/mentor/sphinx/chronus-custom-sphinx-2.0.9-release.tar.gz
+
+$ tar -xvzf chronus-custom-sphinx-2.0.9-release.tar.gz
+
+$ cd sphinx-2.0.9-release
+
+$ sudo ./configure --with-libstemmer --enable-id64 --with-mysql=/opt/mysql/server-5.6
+Note: --with-mysql option is not needed for 12.04
+
+$ sudo make all install
+
+Check sphinx installation by typing "search" command
+$ search
+Sphinx 2.0.9-id64-release (rel20-r4115)
+...
+
+Install Clamav (Open Source Anti Virus) 
+
+$ sudo apt-get install -y clamav clamav-daemon
+
+use the command
+
+$whoami
+
+to know your username
+
+Replace <username> in following commands with your username
+
+$ sudo /etc/init.d/clamav-daemon stop
+$ sudo /etc/init.d/clamav-freshclam stop
+
+$ sudo sed -i 's/User clamav/User <username>/g' /etc/clamav/clamd.conf
+$ sudo sed -i 's/LocalSocketGroup clamav/LocalSocketGroup <username>/g' /etc/clamav/clamd.conf
+$ sudo sed -i 's/DatabaseOwner clamav/DatabaseOwner <username>/g' /etc/clamav/freshclam.conf
+
+# /etc/logrotate.d/clamav-daemon (controls the clamav.log) - change permissions of rotated file
+$ sudo sed -i 's/create 640  clamav adm/create 640  <username> adm/g'  /etc/logrotate.d/clamav-daemon
+
+# /etc/logrotate.d/clamav-freshclam (controls the freshclam.log)
+$ sudo sed -i 's/create 640  clamav adm/create 640  <username> adm/g'  /etc/logrotate.d/clamav-freshclam
+
+$ sudo chown -R <username>:nogroup /var/run/clamav
+$ sudo chown -R <username>:nogroup /var/lib/clamav
+$ sudo chown -R <username>:nogroup /var/log/clamav
+
+$ sudo /etc/init.d/clamav-freshclam start
+$ sudo freshclam
+$ sudo /etc/init.d/clamav-daemon start
+
+Install ImageMagic (ImageMagic image manipulation software)
+
+$ sudo apt-get install imagemagick libmagickwand-dev
+
+Install libqt4-dev
+
+$ sudo apt-get install libqt4-dev
+Note: capybara-webkit gem requires 'libqt4-dev'
+
+Install xmlsec1
+
+$ sudo apt-get install xmlsec1
+
+Elasticsearch Setup
+
+#ES version 1.2 and above requires java version > 1.7.0
+$ sudo apt-get install openjdk-7-jre
+#Add the following line to your bash profile
+export PATH=/usr/lib/jvm/java-1.7.0-openjdk-amd64/bin:$PATH
+
+$ curl -k -L -o elasticsearch-1.7.5.tar.gz https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.7.5.tar.gz
+$ tar -zxvf elasticsearch-1.7.5.tar.gz
+
+In elasticsearch-1.7.5/config/
+elasticsearch.yml update - cluster.name: SomeUniqueName
+Without  this change your indexes might affect others and others might affect yours.
+and add script.disable_dynamic: false
+This change enables script
+
+$ ./elasticsearch-1.7.5/bin/elasticsearch
+#to start es
+
+#Head plugin to see the indexes
+$ elasticsearch-1.7.5/bin/plugin --install mobz/elasticsearch-head
+# access it at http://localhost:9200/_plugin/head/
+
+Redis Setup
+
+$ cd ~/
+$ # 2.8.12 is the version we are using for staging and production envs
+$ wget http://download.redis.io/releases/redis-2.8.12.tar.gz
+$ tar xzf redis-2.8.12.tar.gz
+$ cd redis-2.8.12
+$ make
+$ sudo make install
+
+$  #To start the redis server use
+$ redis-server
+
+Note that redis-server need not be running for development. But it is needed if you are working on an area where an experiment is being done (an a/b test).
+
+Setup ChronusMentor from Github
+
+Generate SSH-Public Key in your local machine
+
+$ ssh-keygen
+
+just press enter for location and passphrases
+
+once key is generated, copy ~/.ssh/id_rsa.pub to your github account SSH-public Keys
+
+$ sudo apt-get -y install git-core
+
+$ git config --global user.name "Firstname Lastname"
+$ git config --global user.email "your_email@youremail.com"
+$ git config --global github.user username
+
+$ mkdir -p ~/projects/groups
+
+start the ssh agent in background :
+$ eval "$(ssh-agent -s)"
+$ ssh-add ~/.ssh/id_rsa
+
+
+$ git clone git@github.com:ChronusCorp/ChronusMentor.git ~/projects/groups
+
+checkout the following branches from chronusmentor
+
+$ cd ~/projects/groups
+$ git fetch origin
+$ git checkout --track -b staging1 origin/staging1
+$ git checkout --track -b develop origin/develop
+
+Install required gemsets for ChronusMentor and Dev and Test DB
+$ bundle install
+
+If bundle install fails, please check what version of bundler is present in the system by running the following command
+$ gem list | grep bundler
+
+If you have multiple versions, remove all versions of bundler except 1.9.4 or above, by running the following command for each unnecessary version:
+$ gem uninstall bundler -v '<version_no>'
+
+If the uninstall command fails with an error, use the command given by the error to uninstall.
+
+Create development DB
+rake db:create
+rake db:migrate
+
+Populate seed data into development DB
+copy the attached cities.txt, states.txt and countries.txt files to ~/groups/
+$ rake db:seed
+
+Populate demo mentor program into development DB
+$ rake db:populate_demo_program NAME="Indian Institute of Technology Madras" SUBDOMAIN="iitm" MENTOR_REQUEST_STYLE=0 GROUP_MENTORING=true
+$ rake matching:clear_and_full_index_and_refresh
+
+Add a host aliases 
+Add following addresses with 127.0.0.1 as IP in /etc/hosts file.
+
+127.0.0.1       iitm.localhost.com
+127.0.0.1       primary.test.host
+127.0.0.1       annauniv.test.host
+127.0.0.1       foster.test.host
+127.0.0.1       mentor.customtest.com
+127.0.0.1       nosubdomtest.com
+127.0.0.1       mentor.test.host
+127.0.0.1       removeuser.test.host
+127.0.0.1       mentor.demo.test.host
+
+Configure Sphinx
+$ rake ts:config
+$ rake ts:in
+
+Start Sphinx
+$ rake ts:start
+
+Start DelayedJob
+$ ruby script/dj_start
+
+Start Elasticsearch
+$ $HOME/elasticsearch-1.7.1/bin/elasticsearch
+
+Create and populate elasticsearch indexes
+$ rake es_indexes:create_and_populate
+
+Start rails server
+$ rails server
+
+Configuring test environment
+$ rake db:create RAILS_ENV=test
+$ rake db:migrate RAILS_ENV=test
+$ ./elasticsearch-1.7.5/bin/elasticsearch
+$ rake db:generate_fixtures RAILS_ENV=test #to create the fixtures
+$ rake ts:in ts:start RAILS_ENV=test
+$ rake matching:clear_and_full_index_and_refresh RAILS_ENV=test
+
+Configuring Git hooks
+Follow the steps in the page to configure git hook
+
+Run tests
+$ mkdir ~/projects/groups/tmp - Without this step tests which deal with images will fail with ImageMagickError
+$ rake test:units RAILS_ENV=test
+$ rake test:functionals RAILS_ENV=test
+$ cucumber features
+Notes: 
+1. cucumber features need Firefox version 40 to be installed. Higher versions of Firefox don't work with cucumber due to capybara dependency. 
+  a. Use http://tecadmin.net/install-firefox-on-linux/# for installing the firefox 40 version. Take the link from Firefox download page OR
+  b. Use the Firefox downgrade instructions to download and install Firefox 40 from Firefox download page. 
+  Launch Firefox, Select preferences => advanced => Update tab, Choose "never check for updates" choice.
+2. Add the following domains to local host in /etc/hosts 'primary.test.host', 'annauniv.test.host', 'foster.test.host', 'secure.test.host'
+
+Other development environment tools
+
+Install Meld (To see diff of our changes)
+$ sudo apt-get install meld
+copy the attached "diff.py" file to ~/
+$chmod 077 ~/diff.py
+include the following lines in ~/.gitconfig
+[diff]
+     external = ~/diff.py
+
+Install ec2-api-tools
+$ wget https://s3.amazonaws.com/chronus-chef/mentor/ec2_api_tools/ec2-api-tools-1.6.12.0.tar.gz -O ~/.ec2_api_tools.tar.gz
+Extract the package to ~/.ec2_api_tools and
+Add ~/.ec2_api_tools/bin to PATH
+Set EC2_HOME environment variable to ~/.ec2_api_tools
+
+Install JAVA
+$sudo apt-get install openjdk-7-jdk
+Set JAVA_HOME environment variable to /usr
+
+Install ElasticFox and FireBug Plugins for FireFox
+ElasticFox - To contact with Amazon EC2
+FireBug - For Debugging UI
+
+Install Libjpeg62(Required for wkhtmltopdf )
+
+sudo apt-get install libjpeg62
+
+
+Download Sublime for development environment
+http://www.sublimetext.com/2
